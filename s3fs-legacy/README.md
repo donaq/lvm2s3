@@ -17,4 +17,8 @@ export SNAPSHOTSIZE=100G # snapshot size
 
 ## Usage
 
+Further instructions are output by the command.
+
+```
 ./backup.sh
+```
