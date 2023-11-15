@@ -15,7 +15,7 @@ bucket = os.environ["BUCKET"]
 endpoint = os.environ["AWS_ENDPOINT"]
 blocksize = 3221225472
 
-def unread_and_spit(lv: str, snapshot: str):
+def unread_and_spit(startpart: int, lv: str, snapshot: str):
     cli = boto3.client(service_name="s3",endpoint_url=endpoint)
 
     def obj_bytes(key: str):
@@ -28,8 +28,9 @@ def unread_and_spit(lv: str, snapshot: str):
     parts = int(parts)
     print(f"{snapshot} has {parts} parts")
 
-    with open(lv, "wb") as lvfp:
-        for currpart in range(1,parts+1):
+    with open(lv, "r+b") as lvfp:
+        lvfp.seek((startpart-1)*blocksize)
+        for currpart in range(startpart,parts+1):
             targetfname = f"{snapshot}/{currpart}"
             hashname = f"{targetfname}.md5"
             t1 = time.time()
@@ -59,8 +60,9 @@ def unread_and_spit(lv: str, snapshot: str):
 if __name__ == "__main__":
     lv = sys.argv[1]
     snapshot = sys.argv[2]
-    print(f"lv: {lv}, snapshot: {snapshot}")
+    startpart = 1 if len(sys.argv)<4 else int(sys.argv[1])
+    print(f"lv: {lv}, snapshot: {snapshot}, startpart: {startpart}")
     start = time.time()
-    unread_and_spit(lv, snapshot)
+    unread_and_spit(startpart, lv, snapshot)
     end = time.time()
     print(f"total time is {end-start}s")
